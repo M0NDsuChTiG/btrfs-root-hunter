@@ -1,4 +1,4 @@
-IyDwn4+04oCN4bu☠️ Btrfs Root Hunter & Rescuer
+☠️ Btrfs Root Hunter & Rescuer
 
 
 **Автоматизированный инструмент для цифровой криминалистики и аварийного восстановления Btrfs.**
