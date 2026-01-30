@@ -26,7 +26,7 @@
 ## **🛠 Установка**
 
 1. Склонируйте репозиторий или скачайте скрипт:  
-   git clone \[https://github.com/ВАШ\_НИКНЕЙМ/btrfs-root-hunter.git\](https://github.com/ВАШ\_НИКНЕЙМ/btrfs-root-hunter.git)  
+   git clone \[https://github.com/M0NDsuChTiG/btrfs-root-hunter.git\](https://github.com/M0NDsuChTiG/btrfs-root-hunter.git)  
    cd btrfs-root-hunter
 
 2. Сделайте файл исполняемым:  
