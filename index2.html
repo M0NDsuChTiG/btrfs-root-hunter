@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Btrfs Root Hunter Academy - Интерактивное обучение восстановлению данных.">
     <title>BTRFS RECOVERY DOJO | M0NDsuChTiG</title>
     
-    <!-- Стили и Скрипты -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Marked.js для красивого отображения ответов AI -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 
     <script>
@@ -25,121 +25,67 @@
 
     <style>
         :root { --accent: #38bdf8; }
-        body { background-color: #020617; color: #f1f5f9; overflow: hidden; height: 100vh; transition: all 0.5s ease; margin: 0; padding: 0; }
+        body { background-color: #020617; color: #f1f5f9; overflow: hidden; height: 100vh; transition: all 0.5s ease; margin: 0; }
         
-        /* Стеклянные панели */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        /* Хакерский режим */
+        .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .hacker-mode { background: #000 !important; color: #00ff41 !important; font-family: 'JetBrains Mono', monospace !important; }
         .hacker-mode .glass-panel { border-color: #00ff41; background: rgba(0, 10, 0, 0.95); box-shadow: 0 0 30px rgba(0, 255, 65, 0.1); }
-        .hacker-mode .text-sky-400 { color: #00ff41 !important; }
-        .hacker-mode .bg-sky-500 { background-color: #00ff41 !important; color: black !important; }
+        .hacker-mode .text-sky-400, .hacker-mode .text-sky-500, .hacker-mode .text-emerald-400, .hacker-mode .text-emerald-500 { color: #00ff41 !important; }
+        .hacker-mode .bg-sky-500, .hacker-mode .bg-emerald-500 { background-color: #00ff41 !important; color: black !important; }
+        .hacker-mode .border-sky-500 { border-color: #00ff41 !important; }
         
-        /* CRT Эффект */
-        .scanline {
-            width: 100%; height: 100%; z-index: 100; 
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-            background-size: 100% 4px, 3px 100%;
-            position: fixed; pointer-events: none; opacity: 0.2;
-        }
-
-        .sidebar-item.active {
-            background: linear-gradient(90deg, rgba(56, 189, 248, 0.15) 0%, transparent 100%);
-            border-left: 4px solid var(--accent);
-            color: #fff;
-            opacity: 1;
-        }
-
+        .scanline { width: 100%; height: 100%; z-index: 100; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02)); background-size: 100% 4px, 3px 100%; position: fixed; pointer-events: none; opacity: 0.2; }
+        .sidebar-item.active { background: linear-gradient(90deg, rgba(56, 189, 248, 0.15) 0%, transparent 100%); border-left: 4px solid var(--accent); color: #fff; opacity: 1; }
         .cursor { display: inline-block; width: 10px; height: 1.2em; background: currentColor; animation: blink 1s step-end infinite; vertical-align: middle; }
         @keyframes blink { 50% { opacity: 0; } }
-
-        .quiz-option { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+        .quiz-option { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
         .quiz-option:hover { background: rgba(56, 189, 248, 0.1); border-color: var(--accent); transform: translateX(10px); }
-        
-        .locked-overlay { backdrop-filter: blur(35px); background: rgba(0,0,0,0.97); }
+        .locked-overlay { backdrop-filter: blur(20px); background: rgba(0,0,0,0.9); z-index: 50; }
         #terminal-input { position: absolute; opacity: 0; pointer-events: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.2); border-radius: 10px; }
+        
+        /* Chat Styles */
+        .chat-bubble { max-width: 80%; padding: 12px 16px; border-radius: 12px; margin-bottom: 10px; font-size: 0.9rem; line-height: 1.5; }
+        .user-msg { background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); align-self: flex-end; color: #e2e8f0; border-bottom-right-radius: 2px; }
+        .ai-msg { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); align-self: flex-start; color: #94a3b8; border-bottom-left-radius: 2px; }
+        .hacker-mode .user-msg { background: rgba(0, 255, 65, 0.2); border-color: #00ff41; color: #00ff41; }
+        .hacker-mode .ai-msg { background: #001100; border-color: #004400; color: #00aa22; }
     </style>
 </head>
 <body class="flex flex-col md:flex-row">
     <div id="hacker-fx" class="scanline hidden"></div>
 
-    <!-- SIDEBAR -->
     <aside class="w-full md:w-80 bg-[#020617] border-r border-white/5 flex flex-col z-50 shadow-2xl">
         <div class="p-10">
             <div class="flex items-center gap-4 mb-3">
-                <div class="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center font-black text-white shadow-2xl shadow-sky-500/40">
-                    <span class="text-xl italic">D</span>
-                </div>
-                <div>
-                    <h1 class="font-black text-2xl tracking-tighter italic">BTRFS DOJO</h1>
-                    <p class="text-[8px] uppercase tracking-[0.4em] font-bold opacity-30 text-sky-400">Security Academy v3.5</p>
-                </div>
+                <div class="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center font-black text-white shadow-2xl shadow-sky-500/40"><span class="text-xl italic">D</span></div>
+                <div><h1 class="font-black text-2xl tracking-tighter italic">BTRFS DOJO</h1><p class="text-[8px] uppercase tracking-[0.4em] font-bold opacity-30 text-sky-400">Security Academy v6.2</p></div>
             </div>
         </div>
-        
         <nav class="flex-grow px-6 space-y-2 py-4">
-            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold opacity-40 active">
-                <span>🏠</span> <span data-i18n="sideDash">Дашборд</span>
-            </button>
-            <button onclick="switchTab('learn')" id="tab-learn" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold opacity-40">
-                <span>📂</span> <span data-i18n="sideLearn">Теория CoW</span>
-            </button>
-            <button onclick="switchTab('terminal')" id="tab-terminal" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold opacity-40">
-                <span>📟</span> <span data-i18n="sideTerm">Терминал</span>
-            </button>
-            <button onclick="switchTab('exam')" id="tab-exam" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold opacity-40">
-                <span>⚔️</span> <span data-i18n="sideExam">Экзамен</span>
-            </button>
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold opacity-40 active"><span>🏠</span> <span data-i18n="sideDash">Дашборд</span></button>
+            <button onclick="switchTab('learn')" id="tab-learn" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold opacity-40"><span>📂</span> <span data-i18n="sideLearn">Теория CoW</span></button>
+            <button onclick="switchTab('terminal')" id="tab-terminal" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold opacity-40"><span>📟</span> <span data-i18n="sideTerm">Терминал</span></button>
+            <button onclick="switchTab('exam')" id="tab-exam" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold opacity-40"><span>⚔️</span> <span data-i18n="sideExam">Сертификация</span></button>
+            <button onclick="switchTab('mentor')" id="tab-mentor" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold opacity-40 text-sky-400 border border-sky-500/30"><span>🤖</span> <span data-i18n="sideMentor">ИИ Ментор</span></button>
         </nav>
-
-        <!-- USER STATS -->
         <div class="p-8 border-t border-white/5 bg-black/40">
             <div class="flex items-center gap-5 mb-8">
-                <div class="w-14 h-14 rounded-full bg-slate-900 border-2 border-sky-500/20 flex items-center justify-center text-2xl shadow-inner relative" id="user-avatar">
-                    👤
-                    <div class="absolute -right-1 -bottom-1 w-5 h-5 bg-emerald-500 border-4 border-[#020617] rounded-full"></div>
-                </div>
-                <div>
-                    <p class="text-[9px] font-black opacity-30 uppercase tracking-[0.2em] mb-1">Rank Status</p>
-                    <p class="text-sky-400 font-black text-base" id="rank-name">Scout</p>
-                </div>
+                <div class="w-14 h-14 rounded-full bg-slate-900 border-2 border-sky-500/20 flex items-center justify-center text-2xl shadow-inner relative" id="user-avatar">👤<div class="absolute -right-1 -bottom-1 w-5 h-5 bg-emerald-500 border-4 border-[#020617] rounded-full"></div></div>
+                <div><p class="text-[9px] font-black opacity-30 uppercase tracking-[0.2em] mb-1" data-i18n="lblRank">Ранг</p><p class="text-sky-400 font-black text-base" id="rank-name">Cadet</p></div>
             </div>
-            <div class="space-y-3">
-                <div class="flex justify-between text-[10px] font-black uppercase tracking-widest opacity-40">
-                    <span>XP Rewards</span>
-                    <span id="xp-val">0</span>
-                </div>
-                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden shadow-inner">
-                    <div class="bg-sky-500 h-full transition-all duration-1000" id="xp-bar" style="width: 0%"></div>
-                </div>
-            </div>
-            <button onclick="toggleHackerMode()" class="mt-8 w-full py-3 bg-slate-900 rounded-xl text-[9px] font-black uppercase tracking-[0.3em] hover:bg-slate-800 transition-all border border-white/5 shadow-xl">
-                Switch UI Mode
-            </button>
+            <button onclick="toggleHackerMode()" class="w-full py-3 bg-slate-900 rounded-xl text-[9px] font-black uppercase tracking-[0.3em] hover:bg-slate-800 transition-all border border-white/5 shadow-xl" data-i18n="btnMode">Сменить Интерфейс</button>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="flex-grow relative flex flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_50%,rgba(15,23,42,1)_0%,rgba(2,6,23,1)_100%)]">
-        
         <header class="h-24 px-12 border-b border-white/5 flex justify-between items-center bg-black/10 backdrop-blur-xl z-20">
-            <div class="flex items-center gap-5">
-                <div class="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
-                <span class="text-[10px] font-black uppercase tracking-[0.5em] opacity-40" id="status-line">System Status: Optimal</span>
-            </div>
+            <div class="flex items-center gap-5"><div class="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></div><span class="text-[10px] font-black uppercase tracking-[0.5em] opacity-40" data-i18n="statusSys">Система: Активна</span></div>
             <button onclick="toggleLang()" class="px-6 py-2.5 glass-panel rounded-2xl text-[10px] font-black border border-white/10 hover:bg-white/10 transition-all uppercase" id="langBtn">Language: RU</button>
         </header>
 
         <div class="flex-grow overflow-y-auto custom-scrollbar p-8 md:p-16 relative z-10">
-            
             <!-- DASHBOARD -->
             <div id="content-dashboard" class="tab-content animate-in fade-in slide-in-from-right-10 duration-700">
                 <div class="max-w-6xl mx-auto">
@@ -147,26 +93,54 @@
                         <div class="lg:col-span-2 glass-panel p-12 rounded-[3.5rem] shadow-2xl relative overflow-hidden group">
                             <h2 class="text-6xl font-black mb-8 leading-none italic tracking-tighter" data-i18n="heroTitle">СПАСИ ДАННЫЕ.</h2>
                             <p class="text-xl opacity-60 mb-12 leading-relaxed max-w-2xl font-medium" data-i18n="heroDesc">
-                                Когда файловая система Btrfs повреждена, обычные методы не работают. Здесь ты изучишь методику "охоты за корнями" и спасешь свои файлы.
+                                Когда файловая система Btrfs повреждена, обычные методы не работают. Пройдите сертификацию, чтобы получить доступ к инструментам спасения.
                             </p>
                             <div class="flex gap-8">
-                                <button onclick="switchTab('learn')" class="px-10 py-5 bg-sky-500 text-black font-black rounded-3xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-sky-500/30">Start Training</button>
-                                <button onclick="switchTab('terminal')" class="px-10 py-5 border border-white/10 font-black rounded-3xl text-[10px] uppercase tracking-widest hover:bg-white/5 transition-all">Command Console</button>
+                                <button onclick="switchTab('exam')" class="px-10 py-5 bg-sky-500 text-black font-black rounded-3xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-sky-500/30" data-i18n="btnStartExam">Начать Экзамен</button>
                             </div>
                         </div>
                         <div class="glass-panel p-12 rounded-[3.5rem] flex flex-col items-center justify-center text-center">
-                            <div class="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-8 border border-red-500/50 animate-pulse">
-                                <span class="text-5xl">🆘</span>
-                            </div>
-                            <p class="text-2xl font-black text-red-500 italic mb-2">CRITICAL FAILURE</p>
-                            <p class="text-[10px] opacity-40 font-mono">NODE: /dev/sda2_corrupt</p>
+                            <div class="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-8 border border-red-500/50 animate-pulse"><span class="text-5xl">🔒</span></div>
+                            <p class="text-2xl font-black text-red-500 italic mb-2" data-i18n="dashLocked">ЗАБЛОКИРОВАНО</p>
+                            <p class="text-[10px] opacity-40 font-mono" data-i18n="dashMods">Модули: 3</p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-                        <div class="glass-panel p-10 rounded-[2.5rem] border-b-2 border-b-red-500"><p class="text-[9px] font-black opacity-30 uppercase mb-4 italic">Issue</p><p class="text-xl font-black">Chunk Tree</p></div>
-                        <div class="glass-panel p-10 rounded-[2.5rem] border-b-2 border-b-sky-500"><p class="text-[9px] font-black opacity-30 uppercase mb-4 italic">Chance</p><p class="text-xl font-black text-sky-400">99.1%</p></div>
-                        <div class="glass-panel p-10 rounded-[2.5rem] border-b-2 border-b-emerald-500"><p class="text-[9px] font-black opacity-30 uppercase mb-4 italic">Metadata</p><p class="text-xl font-black text-emerald-400">Stable</p></div>
-                        <div class="glass-panel p-10 rounded-[2.5rem] border-b-2 border-b-amber-500"><p class="text-[9px] font-black opacity-30 uppercase mb-4 italic">Status</p><p class="text-xl font-black" id="badge-status">Restricted</p></div>
+                </div>
+            </div>
+
+            <!-- AI MENTOR (NEW) -->
+            <div id="content-mentor" class="tab-content hidden animate-in zoom-in duration-500 h-full flex flex-col">
+                <div class="max-w-4xl mx-auto w-full h-full flex flex-col">
+                    <div class="text-center mb-8">
+                        <h2 class="text-4xl font-black uppercase tracking-tighter italic glow-text" data-i18n="mentorTitle">КИБЕР-МЕНТОР</h2>
+                        <p class="opacity-60 text-sm" data-i18n="mentorDesc">Искусственный интеллект, обученный на протоколах восстановления Btrfs.</p>
+                    </div>
+
+                    <div class="glass-panel rounded-[2rem] flex flex-col flex-grow overflow-hidden relative">
+                        <!-- API Key Input Overlay (If empty) -->
+                        <div id="apikey-overlay" class="absolute inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-8 text-center backdrop-blur-md">
+                            <div class="w-16 h-16 bg-sky-500/20 rounded-2xl flex items-center justify-center text-3xl mb-4 text-sky-400">🔑</div>
+                            <h3 class="text-2xl font-bold mb-2">Gemini API Key Required</h3>
+                            <p class="opacity-60 text-sm mb-6 max-w-md" data-i18n="apiKeyDesc">Для доступа к нейросети введите ваш ключ. Он сохранится только в вашем браузере.</p>
+                            <input type="password" id="gemini-key" placeholder="Paste your API Key here..." class="w-full max-w-md bg-white/5 border border-white/10 rounded-xl p-4 text-center font-mono outline-none focus:border-sky-500 mb-4">
+                            <button onclick="saveApiKey()" class="px-8 py-3 bg-sky-600 rounded-xl font-bold hover:bg-sky-500 transition-all">CONNECT UPLINK</button>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] opacity-40 mt-4 hover:text-sky-400 underline">Get Free Key from Google</a>
+                        </div>
+
+                        <!-- Chat Area -->
+                        <div id="chat-history" class="flex-grow overflow-y-auto p-6 flex flex-col gap-2 custom-scrollbar">
+                            <!-- Messages will appear here -->
+                            <div class="ai-msg chat-bubble">
+                                <span class="font-bold text-sky-400 text-xs block mb-1">SYSTEM</span>
+                                Привет, Кадет. Я твой ИИ-наставник. Спрашивай о Btrfs, командах или стратегии восстановления. Я готов.
+                            </div>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="p-4 border-t border-white/5 bg-black/20 flex gap-4">
+                            <input type="text" id="chat-input" class="flex-grow bg-white/5 border border-white/10 rounded-xl p-4 font-mono text-sm outline-none focus:border-sky-500/50 transition-all placeholder-white/20" placeholder="Задай вопрос ментору..." onkeydown="if(event.key==='Enter') sendToGemini()">
+                            <button onclick="sendToGemini()" class="px-6 bg-white/5 border border-white/10 rounded-xl hover:bg-sky-500 hover:text-black transition-all">➤</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -176,28 +150,19 @@
                 <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16">
                     <div class="space-y-12">
                         <div class="glass-panel p-12 rounded-[3.5rem]">
-                            <h3 class="text-3xl font-black mb-8 italic">01. Механика CoW</h3>
-                            <p class="opacity-60 leading-relaxed text-lg mb-10">Btrfs никогда не перезаписывает данные. Она пишет изменения в свободное место. Это создает «поколения» (Generations). Мы просто находим тот момент времени, когда файловое дерево было целым.</p>
-                            <div class="p-8 bg-black/60 rounded-3xl border border-white/5 font-mono text-xs text-sky-400 leading-relaxed">
-                                [SCAN] offset: 492801234 -> OK (Gen 5003)<br>
-                                [SCAN] offset: 492820000 -> FAIL (Gen 5004)<br>
-                                [SCAN] offset: 492837482 -> FAIL (Gen 5005)
-                            </div>
+                            <h3 class="text-3xl font-black mb-8 italic" data-i18n="learnCowTitle">01. Механика CoW</h3>
+                            <p class="opacity-60 leading-relaxed text-lg mb-10" data-i18n="learnCowText">Btrfs никогда не перезаписывает данные. Она пишет изменения в свободное место. Это создает «поколения». Мы находим момент времени, когда дерево было целым.</p>
                         </div>
-                        <div class="glass-panel p-12 rounded-[3.5rem]">
+                        <div class="glass-panel p-12 rounded-[3.5rem] relative overflow-hidden">
+                            <div id="chart-lock" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm text-center p-6">
+                                <span class="text-4xl mb-4">🔒</span>
+                                <h4 class="text-xl font-black uppercase mb-2" data-i18n="lockTitle">Данные Зашифрованы</h4>
+                                <p class="text-xs opacity-60 max-w-xs" data-i18n="lockReasonA">Пройдите Модуль А (Теория), чтобы открыть график поколений.</p>
+                            </div>
                             <h3 class="text-2xl font-black mb-8 italic" data-i18n="visTitle">Анализ поколений</h3>
                             <div class="h-[300px] w-full"><canvas id="btrfsChart"></canvas></div>
-                            <div id="root-details" class="mt-8 p-5 bg-white/5 rounded-2xl text-center text-xs font-mono opacity-50 italic">Выберите узел на графике для анализа...</div>
+                            <div id="root-details" class="mt-8 p-5 bg-white/5 rounded-2xl text-center text-xs font-mono opacity-50 italic" data-i18n="visHint">Выберите узел на графике...</div>
                         </div>
-                    </div>
-                    <div class="glass-panel p-14 rounded-[4rem] bg-gradient-to-br from-slate-900 to-black">
-                        <h3 class="text-4xl font-black mb-12 italic tracking-tighter uppercase underline decoration-sky-500 decoration-4">АЛГОРИТМ HUNTER</h3>
-                        <ul class="space-y-12">
-                            <li class="flex gap-8"><span class="text-sky-500 font-black text-3xl opacity-50">01.</span><div><p class="font-black text-2xl mb-2">Deep Node Scan</p><p class="opacity-50 text-base">Игнорируем Chunk Tree и сканируем диск в поисках Tree Roots.</p></div></li>
-                            <li class="flex gap-8"><span class="text-sky-500 font-black text-3xl opacity-50">02.</span><div><p class="font-black text-2xl mb-2">Sorting</p><p class="opacity-50 text-base">Сортируем транзакции по Generation ID (от новых к старым).</p></div></li>
-                            <li class="flex gap-8"><span class="text-sky-500 font-black text-3xl opacity-50">03.</span><div><p class="font-black text-2xl mb-2">Simulation</p><p class="opacity-50 text-base">Тестируем чтение через <code>btrfs restore -D</code> без записи на диск.</p></div></li>
-                            <li class="flex gap-8"><span class="text-sky-500 font-black text-3xl opacity-50">04.</span><div><p class="font-black text-2xl mb-2">Extraction</p><p class="opacity-50 text-base">Эвакуируем данные на другой физический носитель.</p></div></li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -207,25 +172,24 @@
                 <div class="max-w-5xl mx-auto h-[650px] relative">
                     <div id="term-lock" class="absolute inset-0 z-40 rounded-[4rem] locked-overlay flex flex-col items-center justify-center p-16 text-center transition-all duration-1000">
                         <div class="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-10 border-2 border-red-500 animate-pulse"><span class="text-6xl">🔒</span></div>
-                        <h3 class="text-4xl font-black text-white mb-8 uppercase italic tracking-widest">Unauthorized Session</h3>
-                        <p class="text-slate-400 max-w-sm mb-14 text-lg" data-i18n="termLockDesc">Требуется подтверждение квалификации (83% на Экзамене).</p>
-                        
+                        <h3 class="text-4xl font-black text-white mb-8 uppercase italic tracking-widest" data-i18n="termOffline">Терминал Оффлайн</h3>
+                        <p class="text-slate-400 max-w-sm mb-14 text-lg" data-i18n="termLockDesc">Пройдите Модуль B, чтобы получить пароль.</p>
                         <div id="login-form" class="w-full max-w-xs space-y-4">
-                            <input type="text" id="l-user" placeholder="LOGIN" class="w-full bg-black/60 border border-white/10 rounded-2xl p-5 text-white font-mono outline-none text-center tracking-widest uppercase">
-                            <input type="password" id="l-pass" placeholder="PASSWORD" class="w-full bg-black/60 border border-white/10 rounded-2xl p-5 text-white font-mono outline-none text-center tracking-widest uppercase">
-                            <button onclick="tryLogin()" class="w-full bg-sky-600 text-white p-5 rounded-2xl font-black uppercase hover:bg-sky-500 transition-all shadow-xl">AUTHENTICATE</button>
-                            <p id="login-err" class="text-red-500 text-[10px] font-black mt-6 hidden uppercase tracking-widest">SESSION REFUSED</p>
+                            <input type="text" id="l-user" placeholder="login" class="w-full bg-black/60 border border-white/10 rounded-2xl p-5 text-white font-mono outline-none text-center tracking-widest">
+                            <input type="password" id="l-pass" placeholder="password" class="w-full bg-black/60 border border-white/10 rounded-2xl p-5 text-white font-mono outline-none text-center tracking-widest">
+                            <button onclick="tryLogin()" class="w-full bg-sky-600 text-white p-5 rounded-2xl font-black uppercase tracking-widest hover:bg-sky-500 transition-all shadow-xl" data-i18n="btnConnect">Connect</button>
+                            <p id="login-err" class="text-red-500 text-[10px] font-black mt-6 hidden uppercase tracking-widest" data-i18n="termError">ОТКАЗАНО В ДОСТУПЕ</p>
                         </div>
                     </div>
                     <div class="terminal-window bg-black border border-white/10 rounded-[4rem] h-full overflow-hidden shadow-2xl flex flex-col" onclick="focusTerminal()">
                         <div class="bg-[#0a0a0a] px-12 py-8 flex items-center justify-between border-b border-white/5">
                             <div class="flex gap-3"><div class="w-4 h-4 rounded-full bg-[#ff5f56]"></div><div class="w-4 h-4 rounded-full bg-[#ffbd2e]"></div><div class="w-4 h-4 rounded-full bg-[#27c93f]"></div></div>
-                            <span class="text-[11px] font-mono text-slate-500 uppercase italic opacity-40 tracking-[0.4em]">ROOT-HUNTER-KERNEL-V4.12</span>
+                            <span class="text-[11px] font-mono text-slate-500 uppercase italic opacity-40 tracking-[0.4em]">ROOT-SHELL</span>
                         </div>
                         <div id="terminal-body" class="p-12 flex-grow overflow-y-auto font-mono text-sm leading-relaxed custom-scrollbar text-[#a9b1d6]">
                             <div id="terminal-history"></div>
                             <div id="active-line" class="flex items-center flex-wrap gap-x-3 mt-4 hidden">
-                                <span class="text-sky-400 font-bold underline italic">operator@hunter</span>: <span class="text-emerald-500">$</span>
+                                <span class="text-sky-400 font-bold underline italic">root@hunter</span>: <span class="text-emerald-500">$</span>
                                 <span id="terminal-display-text" class="text-white font-bold"></span><span class="cursor"></span>
                                 <input type="text" id="terminal-input" spellcheck="false" autocomplete="off">
                             </div>
@@ -234,35 +198,47 @@
                 </div>
             </div>
 
-            <!-- EXAM -->
+            <!-- EXAM SELECTION -->
             <div id="content-exam" class="tab-content hidden animate-in slide-in-from-right-20 duration-700">
-                <div class="max-w-4xl mx-auto">
+                <div class="max-w-6xl mx-auto">
                     <div class="text-center mb-16">
-                        <h2 class="text-6xl font-black mb-8 uppercase tracking-tighter italic glow-text" data-i18n="quizTitle">ЭКЗАМЕН СПЕЦИАЛИСТА</h2>
-                        <div class="flex justify-center gap-2.5 flex-wrap max-w-2xl mx-auto" id="quiz-progress-dots"></div>
+                        <h2 class="text-5xl font-black mb-6 uppercase tracking-tighter italic glow-text" data-i18n="certCenter">Центр Сертификации</h2>
+                        <p class="opacity-60 text-lg mb-12" data-i18n="certDesc">Выберите модуль (30 вопросов каждый). Проходной балл: 83%.</p>
                     </div>
-                    <div id="quiz-card" class="glass-panel p-12 md:p-20 rounded-[4rem] min-h-[600px] flex flex-col justify-center relative transition-all border-sky-500/5 shadow-2xl">
-                        <div id="quiz-content">
-                            <div class="mb-16 flex justify-between items-end border-b border-white/5 pb-10 font-black">
-                                <div><span class="text-sky-400 text-xs uppercase block mb-2 tracking-widest">Protocol Stage</span><span class="text-5xl italic tracking-tighter"><span id="q-current">1</span><span class="opacity-10">/30</span></span></div>
-                                <div class="text-right"><span class="text-emerald-500 text-xs uppercase block mb-2 tracking-widest">Accuracy</span><span id="score-live" class="text-4xl italic text-emerald-400">0%</span></div>
-                            </div>
-                            <h3 id="quiz-question" class="text-3xl md:text-5xl font-bold mb-16 italic tracking-tight text-white leading-none"></h3>
-                            <div id="quiz-options" class="grid grid-cols-1 gap-5"></div>
-                            <button id="quiz-next" class="mt-16 w-full bg-sky-600 text-white py-8 rounded-[2rem] font-black hidden uppercase italic tracking-widest shadow-2xl" data-i18n="quizNext">Continue Protocol</button>
+                    
+                    <div id="exam-menu" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="glass-panel p-10 rounded-[3rem] hover:scale-105 transition-all cursor-pointer group" onclick="startModule('A')">
+                            <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:bg-blue-500 group-hover:text-black transition-colors">📘</div>
+                            <h3 class="text-2xl font-black mb-2" data-i18n="modATitle">Module A</h3>
+                            <p class="text-xs uppercase tracking-widest opacity-50 mb-6" data-i18n="modASub">Theory</p>
+                            <p class="text-sm opacity-70" data-i18n="modADesc">30 Вопросов: Архитектура, CoW, B-деревья.</p>
                         </div>
-                        <div id="quiz-results" class="hidden text-center py-10 animate-in zoom-in duration-1000">
-                            <div id="result-icon" class="text-[150px] mb-12 leading-none">🚫</div>
-                            <h3 id="result-title" class="text-7xl font-black mb-8 uppercase italic italic tracking-tighter">Access Denied</h3>
-                            <p id="quiz-score-text" class="text-4xl font-black mb-20 opacity-30 italic"></p>
-                            <div id="login-reveal" class="hidden bg-emerald-400/5 p-16 rounded-[4rem] mb-20 border border-emerald-500/20 animate-pulse shadow-2xl">
-                                <p class="text-xs font-black uppercase mb-10 text-emerald-400 tracking-[1em]">Decryption Successful:</p>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 font-mono text-3xl text-white">
-                                    <div class="bg-black p-8 rounded-3xl border border-white/5 shadow-inner">USER: <span class="text-emerald-400">admin</span></div>
-                                    <div class="bg-black p-8 rounded-3xl border border-white/5 shadow-inner">PASS: <span class="text-emerald-400 italic underline">btrfs_root_2026</span></div>
-                                </div>
-                            </div>
-                            <button onclick="restartQuiz()" class="px-20 py-8 rounded-[2rem] border-2 border-white/10 font-black hover:bg-white/5 transition-all uppercase tracking-widest italic" data-i18n="quizAgain">Retry Protocol</button>
+                        <div class="glass-panel p-10 rounded-[3rem] hover:scale-105 transition-all cursor-pointer group" onclick="startModule('B')">
+                            <div class="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:bg-purple-500 group-hover:text-black transition-colors">📟</div>
+                            <h3 class="text-2xl font-black mb-2" data-i18n="modBTitle">Module B</h3>
+                            <p class="text-xs uppercase tracking-widest opacity-50 mb-6" data-i18n="modBSub">Tools</p>
+                            <p class="text-sm opacity-70" data-i18n="modBDesc">30 Вопросов: Утилиты, Флаги, Диагностика.</p>
+                        </div>
+                        <div class="glass-panel p-10 rounded-[3rem] hover:scale-105 transition-all cursor-pointer group" onclick="startModule('C')">
+                            <div class="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:bg-red-500 group-hover:text-black transition-colors">🛡️</div>
+                            <h3 class="text-2xl font-black mb-2" data-i18n="modCTitle">Module C</h3>
+                            <p class="text-xs uppercase tracking-widest opacity-50 mb-6" data-i18n="modCSub">Protocol</p>
+                            <p class="text-sm opacity-70" data-i18n="modCDesc">30 Вопросов: Сценарии, Безопасность, LFS.</p>
+                        </div>
+                    </div>
+
+                    <!-- QUIZ INTERFACE -->
+                    <div id="active-quiz" class="hidden glass-panel p-12 rounded-[4rem] min-h-[500px] flex flex-col justify-center relative">
+                        <button onclick="closeQuiz()" class="absolute top-8 right-8 text-xs font-black uppercase opacity-50 hover:opacity-100">Exit ✕</button>
+                        <div id="quiz-content">
+                            <h3 id="quiz-question" class="text-2xl md:text-3xl font-bold mb-10 text-center leading-tight"></h3>
+                            <div id="quiz-options" class="grid grid-cols-1 gap-4 max-w-2xl mx-auto w-full"></div>
+                        </div>
+                        <div id="quiz-result-screen" class="hidden text-center">
+                            <h3 id="result-title" class="text-5xl font-black mb-6"></h3>
+                            <p id="result-msg" class="text-xl mb-10 opacity-60"></p>
+                            <div id="reward-box" class="hidden bg-emerald-500/10 p-8 rounded-3xl mb-8 border border-emerald-500/30"></div>
+                            <button onclick="closeQuiz()" class="px-10 py-4 bg-white/10 rounded-2xl font-bold hover:bg-white/20" data-i18n="btnReturn">Return to Menu</button>
                         </div>
                     </div>
                 </div>
@@ -271,92 +247,149 @@
     </main>
 
     <script>
-        let currentLang = 'ru'; let isHackerMode = false; let score = 0; let qIdx = 0; let xp = 0;
+        let currentLang = 'ru'; let isHackerMode = false;
+        let unlocks = { theory: false, terminal: false, hunter: false };
+        let activeModule = null; let currentQ = 0; let currentScore = 0;
         let chartObj = null; let cmdHistory = []; let historyIdx = -1;
+        let geminiKey = localStorage.getItem('gemini_key') || "";
+
+        if(geminiKey) document.getElementById('apikey-overlay').classList.add('hidden');
 
         const translations = {
             ru: {
-                sideDash: "Дашборд", sideLearn: "Теория CoW", sideTerm: "Терминал", sideExam: "Экзамен",
-                heroTitle: "СПАСИ СВОИ ДАННЫЕ.", heroDesc: "Btrfs повреждена? Обычные инструменты бессильны. Вступай в ряды профессионалов и спасай файлы через анализ транзакций.",
-                visTitle: "АНАЛИЗ ПОКОЛЕНИЙ", quizTitle: "ЭКЗАМЕН СПЕЦИАЛИСТА", quizNext: "ПРОДОЛЖИТЬ", quizAgain: "ЗАНОВО",
-                termTitle: "ТЕРМИНАЛ ВОССТАНОВЛЕНИЯ", termLockDesc: "Требуется уровень доступа 'Hunter' (минимум 83% на Экзамене). Пройдите тест для получения ключей.",
-                termHelp: "Доступные команды: help, ls, pwd, btrfs check, btrfs-find-root, sudo ./btrfs_magic.sh, clear",
-                termNotFound: "команда не найдена"
+                sideDash: "Дашборд", sideLearn: "Теория", sideTerm: "Терминал", sideExam: "Сертификация", sideMentor: "ИИ Ментор",
+                heroTitle: "СПАСИ ДАННЫЕ.", heroDesc: "Когда файловая система Btrfs повреждена, обычные методы не работают. Пройдите сертификацию, чтобы получить доступ к инструментам спасения.",
+                btnStartExam: "Начать Экзамен", dashLocked: "ЗАБЛОКИРОВАНО", dashMods: "Модули: 3",
+                learnCowTitle: "01. Механика CoW", learnCowText: "Btrfs никогда не перезаписывает данные. Она пишет изменения в свободное место. Это создает «поколения». Мы находим момент времени, когда дерево было целым.",
+                lockTitle: "Данные Зашифрованы", lockReasonA: "Пройдите Модуль А (Теория), чтобы открыть график.",
+                visTitle: "Анализ поколений", visHint: "Выберите узел на графике для анализа...",
+                termOffline: "Терминал Оффлайн", termLockDesc: "Пройдите Модуль B, чтобы получить пароль.", btnConnect: "Подключиться", termError: "ОТКАЗАНО В ДОСТУПЕ",
+                certCenter: "Центр Сертификации", certDesc: "Выберите модуль (30 вопросов). Проходной балл: 83%.",
+                modATitle: "Модуль А", modASub: "Теория", modADesc: "30 Вопросов: Архитектура, CoW, B-деревья.",
+                modBTitle: "Модуль B", modBSub: "Инструменты", modBDesc: "30 Вопросов: Утилиты, Флаги, Диагностика.",
+                modCTitle: "Модуль C", modCSub: "Протокол", modCDesc: "30 Вопросов: Сценарии, Безопасность, LFS.",
+                btnReturn: "Вернуться в меню",
+                termHelp: "Доступные команды: help, ls, pwd, btrfs check, btrfs-find-root, sudo ./btrfs_magic.sh, clear, uname -a, make",
+                termNotFound: "команда не найдена",
+                statusSys: "Система: Активна", lblRank: "Ранг", btnMode: "Сменить Интерфейс",
+                mentorTitle: "КИБЕР-МЕНТОР", mentorDesc: "ИИ-ассистент академии Root Hunter.", apiKeyDesc: "Введите ваш Gemini API Key. Он сохранится локально."
             },
             en: {
-                sideDash: "Nexus", sideLearn: "Core Theory", sideTerm: "Terminal", sideExam: "Exam",
-                heroTitle: "RESCUE YOUR DATA.", heroDesc: "Btrfs failure? Standard tools won't help. Join the elite hunters and save your files via transaction analysis.",
-                visTitle: "Generation Analysis", quizTitle: "SPECIALIST EXAM", quizNext: "CONTINUE SESSION", quizAgain: "RESTART PROTOCOL",
-                termTitle: "RECOVERY TERMINAL", termLockDesc: "Access restricted to 'Hunter' rank (min 83% score). Pass the Exam module for credentials.",
-                termHelp: "Commands: help, ls, pwd, btrfs check, btrfs-find-root, sudo ./btrfs_magic.sh, clear",
-                termNotFound: "command not found"
+                sideDash: "Nexus", sideLearn: "Theory", sideTerm: "Terminal", sideExam: "Certify", sideMentor: "AI Mentor",
+                heroTitle: "RESCUE DATA.", heroDesc: "When Btrfs file system is corrupted, standard tools fail. Pass certification to access rescue tools.",
+                btnStartExam: "Start Exam", dashLocked: "ACCESS LOCKED", dashMods: "Modules Locked: 3",
+                learnCowTitle: "01. CoW Mechanics", learnCowText: "Btrfs never overwrites data. It writes changes to free space, creating 'generations'. We find the moment when the tree was whole.",
+                lockTitle: "Data Encrypted", lockReasonA: "Pass Module A (Theory) to unlock the chart.",
+                visTitle: "Generation Analysis", visHint: "Select a node on the chart...",
+                termOffline: "Console Offline", termLockDesc: "Pass Module B to obtain password.", btnConnect: "Connect", termError: "ACCESS DENIED",
+                certCenter: "Certification Center", certDesc: "Select module (30 questions). Pass score: 83%.",
+                modATitle: "Module A", modASub: "Theory", modADesc: "30 Questions: Architecture, CoW, B-Trees.",
+                modBTitle: "Module B", modBSub: "Tools", modBDesc: "30 Questions: Utils, Flags, Diagnostics.",
+                modCTitle: "Module C", modCSub: "Protocol", modCDesc: "30 Questions: Scenarios, Security, LFS.",
+                btnReturn: "Return to Menu",
+                termHelp: "Commands: help, ls, pwd, btrfs check, btrfs-find-root, sudo ./btrfs_magic.sh, clear, uname -a, make",
+                termNotFound: "command not found",
+                statusSys: "System: Operational", lblRank: "Rank", btnMode: "Switch Interface",
+                mentorTitle: "CYBER MENTOR", mentorDesc: "Root Hunter Academy AI Assistant.", apiKeyDesc: "Enter Gemini API Key. Stored locally."
             }
         };
 
-        const questionsList = {
-            ru: [
-                { q: "Что означает CoW в Btrfs?", a: [{t: "Копирование при записи", c:true}, {t: "Кэширование", c:false}] },
-                { q: "Зачем нужно btrfs-find-root?", a: [{t: "Поиск заголовков деревьев метаданных", c:true}, {t: "Удаление рута", c:false}] },
-                { q: "Метаданные Btrfs хранятся в...", a: [{t: "B-деревьях", c:true}, {t: "Линейных списках", c:false}] },
-                { q: "Root Hunter восстанавливает из...", a: [{t: "Любого прошлого Generation", c:true}, {t: "Только текущего", c:false}] },
-                { q: "Chunk Tree Error означает что?", a: [{t: "Потеряна карта физических блоков", c:true}, {t: "Диск перегрет", c:false}] },
-                { q: "Флаг -D в btrfs restore означает?", a: [{t: "Dry run (без записи)", c:true}, {t: "Delete", c:false}] },
-                { q: "Безопасно ли восстанавливать на тот же диск?", a: [{t: "Нет, данные могут быть перезаписаны", c:true}, {t: "Да", c:false}] },
-                { q: "Команда для просмотра разделов?", a: [{t: "lsblk", c:true}, {t: "ls", c:false}] },
-                { q: "Что такое Bytenr?", a: [{t: "Адрес физического смещения", c:true}, {t: "Размер файла", c:false}] },
-                { q: "Btrfs поддерживает RAID1?", a: [{t: "Да, нативно", c:true}, {t: "Нет", c:false}] },
-                { q: "Что делает btrfs scrub?", a: [{t: "Проверяет целостность блоков", c:true}, {t: "Стирает диск", c:false}] },
-                { q: "Сколько суперблоков у Btrfs?", a: [{t: "3", c:true}, {t: "1", c:false}] },
-                { q: "Алгоритм хэша по умолчанию?", a: [{t: "CRC32C", c:true}, {t: "MD5", c:false}] },
-                { q: "Btrfs-image нужен для?", a: [{t: "Дампа метаданных для отладки", c:true}, {t: "Фото", c:false}] },
-                { q: "Сжатие в Btrfs бывает?", a: [{t: "Да (zstd, zlib, lzo)", c:true}, {t: "Нет", c:false}] },
-                { q: "Bit Rot — это?", a: [{t: "Тихое повреждение данных", c:true}, {t: "Вирус", c:false}] },
-                { q: "Extent Tree отвечает за?", a: [{t: "Свободное место и блоки", c:true}, {t: "Имена папок", c:false}] },
-                { q: "Mount 'usebackuproot' делает что?", a: [{t: "Использует резервный корень", c:true}, {t: "Чистит кэш", c:false}] },
-                { q: "Btrfs 64-битная система?", a: [{t: "Да", c:true}, {t: "Нет", c:false}] },
-                { q: "Максимальный размер файла?", a: [{t: "16 экзобайт", c:true}, {t: "4 Гб", c:false}] },
-                { q: "Btrfs Snapshot — это?", a: [{t: "Мгновенный снимок состояния ФС", c:true}, {t: "Скриншот", c:false}] },
-                { q: "Дедупликация — это?", a: [{t: "Устранение дублей блоков", c:true}, {t: "Копирование", c:false}] },
-                { q: "Можно ли менять размер Btrfs онлайн?", a: [{t: "Да", c:true}, {t: "Нет", c:false}] },
-                { q: "Команда btrfs device stats покажет?", a: [{t: "Ошибки записи/чтения", c:true}, {t: "RAM", c:false}] },
-                { q: "Флаг -t в restore указывает на?", a: [{t: "Tree root bytenr", c:true}, {t: "Time", c:false}] },
-                { q: "btrfs rescue zero-log очищает?", a: [{t: "Лог транзакций", c:true}, {t: "Все файлы", c:false}] },
-                { q: "Скрипт btrfs_magic.sh написан на?", a: [{t: "Bash", c:true}, {t: "Java", c:false}] },
-                { q: "Зачем восстанавливать на другой диск?", a: [{t: "Избежать перезаписи источника", c:true}, {t: "Так быстрее", c:false}] },
-                { q: "Btrfs умеет сама чинить ошибки в RAID1?", a: [{t: "Да, по зеркалу", c:true}, {t: "Нет", c:false}] },
-                { q: "Кто лидер разработки Btrfs?", a: [{t: "Chris Mason", c:true}, {t: "Jobs", c:false}] }
+        const modules = {
+            A: [ 
+                { q: "Что такое CoW?", a: [{t: "Copy-on-Write (Копирование при записи)", c:true}, {t: "Cache-on-Web", c:false}, {t: "Cloud-of-Work", c:false}] },
+                { q: "Где хранятся метаданные?", a: [{t: "B-Tree (B-деревья)", c:true}, {t: "Linked List", c:false}, {t: "FAT Table", c:false}] },
+                { q: "Что такое Generation?", a: [{t: "ID транзакции файловой системы", c:true}, {t: "Версия ядра Linux", c:false}, {t: "Номер сектора", c:false}] },
+                { q: "Chunk Tree отвечает за?", a: [{t: "Маппинг физических блоков", c:true}, {t: "Имена файлов", c:false}, {t: "Права доступа", c:false}] },
+                { q: "Bytenr — это?", a: [{t: "Физический адрес (смещение)", c:true}, {t: "Размер файла", c:false}, {t: "Скорость", c:false}] },
+                { q: "Макс. размер файла в Btrfs?", a: [{t: "16 экзобайт", c:true}, {t: "4 Гб", c:false}, {t: "16 терабайт", c:false}] },
+                { q: "Extent Tree управляет?", a: [{t: "Аллокацией места", c:true}, {t: "Пользователями", c:false}, {t: "Сетевыми путями", c:false}] },
+                { q: "Что такое Bit Rot?", a: [{t: "Тихое повреждение данных", c:true}, {t: "Компьютерный вирус", c:false}, {t: "Фрагментация", c:false}] },
+                { q: "Снапшоты копируют данные?", a: [{t: "Нет, только ссылки (CoW)", c:true}, {t: "Да, полностью дублируют", c:false}, {t: "В zip архив", c:false}] },
+                { q: "Btrfs 64-битная?", a: [{t: "Да", c:true}, {t: "Нет, 32-битная", c:false}, {t: "Нет, 128-битная", c:false}] },
+                { q: "Размер ноды по умолчанию?", a: [{t: "16KB", c:true}, {t: "4KB", c:false}, {t: "64KB", c:false}] },
+                { q: "Root Tree хранит?", a: [{t: "Ссылки на другие деревья", c:true}, {t: "Файлы", c:false}, {t: "Логи", c:false}] },
+                { q: "CSum Tree нужно для?", a: [{t: "Хранения контрольных сумм", c:true}, {t: "Подсчета денег", c:false}, {t: "Суммы файлов", c:false}] },
+                { q: "FS Tree хранит?", a: [{t: "Файлы и директории", c:true}, {t: "Только папки", c:false}, {t: "Только метаданные", c:false}] },
+                { q: "Конвертация ext4 в btrfs?", a: [{t: "Да, на лету", c:true}, {t: "Нет, форматирование", c:false}, {t: "Только через Win", c:false}] },
+                { q: "Space Cache версии?", a: [{t: "v1 и v2", c:true}, {t: "v1 only", c:false}, {t: "v3", c:false}] },
+                { q: "Поддержка subvolumes?", a: [{t: "Да", c:true}, {t: "Нет", c:false}, {t: "Платно", c:false}] },
+                { q: "Subvolume vs Папка?", a: [{t: "Можно монтировать отдельно", c:true}, {t: "Ничем", c:false}, {t: "Цветом", c:false}] },
+                { q: "Что такое Seed Device?", a: [{t: "Read-only источник", c:true}, {t: "Флешка для посева", c:false}, {t: "Генератор", c:false}] },
+                { q: "Zoned mode для?", a: [{t: "SMR дисков", c:true}, {t: "Игр", c:false}, {t: "Офиса", c:false}] },
+                { q: "Inline extents хранятся?", a: [{t: "В метадате", c:true}, {t: "В блоке", c:false}, {t: "В RAM", c:false}] },
+                { q: "Мин. размер устройства?", a: [{t: "256MB", c:true}, {t: "1GB", c:false}, {t: "1KB", c:false}] },
+                { q: "Swap файлы?", a: [{t: "Да, с ограничениями", c:true}, {t: "Нет", c:false}, {t: "Только на HDD", c:false}] },
+                { q: "Что такое Balance?", a: [{t: "Перераспределение чанков", c:true}, {t: "Проверка", c:false}, {t: "Оплата", c:false}] },
+                { q: "Send/Receive работает с?", a: [{t: "Снапшотами", c:true}, {t: "Папками", c:false}, {t: "Сетью", c:false}] },
+                { q: "Размер сектора?", a: [{t: "4KB", c:true}, {t: "512B", c:false}, {t: "1MB", c:false}] },
+                { q: "Free Space Tree (v2)?", a: [{t: "Ускоряет монтирование", c:true}, {t: "Удаляет файлы", c:false}, {t: "Грузит Win", c:false}] },
+                { q: "Dev Tree хранит?", a: [{t: "Инфо об устройствах", c:true}, {t: "Драйверы", c:false}, {t: "Игры", c:false}] },
+                { q: "UUID subvolume...", a: [{t: "Уникален", c:true}, {t: "Совпадает с родителем", c:false}, {t: "Меняется", c:false}] },
+                { q: "Transid - это...", a: [{t: "ID транзакции", c:true}, {t: "ID транспорта", c:false}, {t: "Переводчик", c:false}] }
             ],
-            en: [
-                { q: "What is CoW?", a: [{t: "Copy-on-Write", c:true}, {t: "Cache", c:false}] },
-                { q: "btrfs-find-root purpose?", a: [{t: "Find tree headers", c:true}, {t: "Delete root", c:false}] },
-                { q: "Bytenr address refers to?", a: [{t: "Physical disk offset", c:true}, {t: "File bits", c:false}] },
-                { q: "Dry run flag?", a: [{t: "-D", c:true}, {t: "-f", c:false}] },
-                { q: "Safe to restore to same drive?", a: [{t: "No, overwrite risk", c:true}, {t: "Yes", c:false}] },
-                { q: "Generation ID is?", a: [{t: "State sequence number", c:true}, {t: "CPU age", c:false}] },
-                { q: "Btrfs metadata storage?", a: [{t: "B-Trees", c:true}, {t: "Lists", c:false}] },
-                { q: "Chunk tree failure is...", a: [{t: "Fatal for mounting", c:true}, {t: "Normal", c:false}] },
-                { q: "Super-recover repairs...", a: [{t: "Superblocks", c:true}, {t: "RAM", c:false}] },
-                { q: "Default hash in Btrfs?", a: [{t: "CRC32C", c:true}, {t: "MD5", c:false}] },
-                { q: "Native RAID1 support?", a: [{t: "Yes", c:true}, {t: "No", c:false}] },
-                { q: "Snapshots take space?", a: [{t: "Only on data changes", c:true}, {t: "Instantly", c:false}] },
-                { q: "What is deduplication?", a: [{t: "Remove block duplicates", c:true}, {t: "Moving files", c:false}] },
-                { q: "btrfs-image use case?", a: [{t: "Metadata dump", c:true}, {t: "Gallery", c:false}] },
-                { q: "Is compression supported?", a: [{t: "Yes", c:true}, {t: "No", c:false}] },
-                { q: "Bit rot meaning?", a: [{t: "Silent corruption", c:true}, {t: "Virus", c:false}] },
-                { q: "Extent Tree manages...", a: [{t: "Block allocation", c:true}, {t: "User logs", c:false}] },
-                { q: "Btrfs scrub validates?", a: [{t: "Checksums", c:true}, {t: "Passwords", c:false}] },
-                { q: "Superblock count?", a: [{t: "3", c:true}, {t: "1", c:false}] },
-                { q: "SB #1 Bytenr?", a: [{t: "65536", c:true}, {t: "0", c:false}] },
-                { q: "Max partition size?", a: [{t: "16 EB", c:true}, {t: "1 TB", c:false}] },
-                { q: "mount -o recovery?", a: [{t: "Backup root use", c:true}, {t: "Format disk", c:false}] },
-                { q: "Is btrfs-progs needed?", a: [{t: "Yes", c:true}, {t: "No", c:false}] },
-                { q: "Script extension?", a: [{t: ".sh", c:true}, {t: ".py", c:false}] },
-                { q: "What is Dry Run?", a: [{t: "No-write simulation", c:true}, {t: "Quick format", c:false}] },
-                { q: "-v flag meaning?", a: [{t: "Verbose", c:true}, {t: "Version", c:false}] },
-                { q: "Kernel logs?", a: [{t: "dmesg", c:true}, {t: "Top", c:false}] },
-                { q: "zero-log use?", a: [{t: "Clear journal", c:true}, {t: "Wipe files", c:false}] },
-                { q: "Is Btrfs 64-bit?", a: [{t: "Yes", c:true}, {t: "No", c:false}] },
-                { q: "Btrfs author?", a: [{t: "Chris Mason", c:true}, {t: "Linus", c:false}] }
+            B: [ 
+                { q: "btrfs-find-root ищет...", a: [{t: "Заголовки деревьев (Tree Roots)", c:true}, {t: "Удаленные файлы", c:false}, {t: "Вирусы", c:false}] },
+                { q: "Флаг -D в restore?", a: [{t: "Dry Run (Тест без записи)", c:true}, {t: "Delete (Удаление)", c:false}, {t: "Debug (Отладка)", c:false}] },
+                { q: "Команда просмотра дисков?", a: [{t: "lsblk", c:true}, {t: "ps aux", c:false}, {t: "netstat", c:false}] },
+                { q: "btrfs scrub делает?", a: [{t: "Проверку контрольных сумм (CRC)", c:true}, {t: "Форматирование диска", c:false}, {t: "Дефрагментацию", c:false}] },
+                { q: "Флаг -t указывает?", a: [{t: "Адрес корня (bytenr)", c:true}, {t: "Таймаут в секундах", c:false}, {t: "Тип файла", c:false}] },
+                { q: "mount -o recovery?", a: [{t: "Использовать резервный корень", c:true}, {t: "Удалить все данные", c:false}, {t: "Смонтировать как FAT32", c:false}] },
+                { q: "btrfs rescue zero-log?", a: [{t: "Очистка журнала транзакций", c:true}, {t: "Очистка диска", c:false}, {t: "Сброс пароля root", c:false}] },
+                { q: "-v означает?", a: [{t: "Verbose (подробно)", c:true}, {t: "Version (версия)", c:false}, {t: "Void (пусто)", c:false}] },
+                { q: "Где логи ядра?", a: [{t: "dmesg", c:true}, {t: "top", c:false}, {t: "vim", c:false}] },
+                { q: "btrfs device stats?", a: [{t: "Ошибки ввода/вывода устройства", c:true}, {t: "Скорость интернета", c:false}, {t: "Температура CPU", c:false}] },
+                { q: "btrfs balance start?", a: [{t: "Запуск балансировки", c:true}, {t: "Остановка", c:false}, {t: "Весы", c:false}] },
+                { q: "btrfs property get?", a: [{t: "Получить свойства", c:true}, {t: "Купить", c:false}, {t: "Скачать", c:false}] },
+                { q: "btrfs subvolume snapshot?", a: [{t: "Создать снимок", c:true}, {t: "Удалить", c:false}, {t: "Фото", c:false}] },
+                { q: "btrfs filesystem df?", a: [{t: "Занятое место (детально)", c:true}, {t: "Удалить ФС", c:false}, {t: "Дефраг", c:false}] },
+                { q: "btrfs inspect-internal?", a: [{t: "Низкоуровневая отладка", c:true}, {t: "Вирусы", c:false}, {t: "Инспекция", c:false}] },
+                { q: "btrfs replace start?", a: [{t: "Замена диска на лету", c:true}, {t: "Замена текста", c:false}, {t: "Ребут", c:false}] },
+                { q: "btrfs qgroup show?", a: [{t: "Показать квоты", c:true}, {t: "Группы", c:false}, {t: "Вопросы", c:false}] },
+                { q: "restore -l?", a: [{t: "Листинг корней", c:true}, {t: "Листинг файлов", c:false}, {t: "Лечение", c:false}] },
+                { q: "restore -m?", a: [{t: "Восст. метаданных", c:true}, {t: "Монтирование", c:false}, {t: "Мануал", c:false}] },
+                { q: "partprobe?", a: [{t: "Обновить таблицу разделов", c:true}, {t: "Проверить партию", c:false}, {t: "Создать", c:false}] },
+                { q: "wipefs -a?", a: [{t: "Удалить сигнатуры", c:true}, {t: "Протереть", c:false}, {t: "Очистить место", c:false}] },
+                { q: "mount -o compress=zstd?", a: [{t: "Включить сжатие ZSTD", c:true}, {t: "Архивировать", c:false}, {t: "Уменьшить", c:false}] },
+                { q: "btrfs-map-logical?", a: [{t: "Найти физ. адрес", c:true}, {t: "Карта", c:false}, {t: "Игра", c:false}] },
+                { q: "btrfstune?", a: [{t: "Настройка фич ФС", c:true}, {t: "Плеер", c:false}, {t: "Тюнинг", c:false}] },
+                { q: "btrfs check --init-csum-tree?", a: [{t: "Пересоздать CRC (опасно)", c:true}, {t: "Проверить", c:false}, {t: "Инициализация", c:false}] },
+                { q: "btrfs rescue chunk-recover?", a: [{t: "Восст. Chunk Tree", c:true}, {t: "Восст. файлов", c:false}, {t: "Чанки", c:false}] },
+                { q: "smartctl -a?", a: [{t: "S.M.A.R.T. диска", c:true}, {t: "Умный дом", c:false}, {t: "Смартфон", c:false}] },
+                { q: "mount -o degraded?", a: [{t: "Монтаж битого RAID", c:true}, {t: "Качество", c:false}, {t: "Безопасный", c:false}] },
+                { q: "btrfs filesystem resize?", a: [{t: "Изменение размера", c:true}, {t: "Размер окна", c:false}, {t: "Фото", c:false}] },
+                { q: "cat /proc/mounts?", a: [{t: "Список смонтированного", c:true}, {t: "Коты", c:false}, {t: "Процессы", c:false}] }
+            ],
+            C: [ // PROTOCOL
+                { q: "Восстанавливать на тот же диск?", a: [{t: "Нет, риск перезаписи", c:true}, {t: "Да, можно", c:false}, {t: "Да, если есть место", c:false}] },
+                { q: "Если Chunk Tree сломан?", a: [{t: "Сканировать сырой диск (Raw Scan)", c:true}, {t: "Сдаться и форматировать", c:false}, {t: "Перезагрузить ПК", c:false}] },
+                { q: "Сортировка поколений?", a: [{t: "От новых к старым", c:true}, {t: "Случайно", c:false}, {t: "От старых к новым", c:false}] },
+                { q: "Какой пакет нужен?", a: [{t: "btrfs-progs", c:true}, {t: "ntfs-3g", c:false}, {t: "apache2", c:false}] },
+                { q: "Алгоритм хэша?", a: [{t: "CRC32C", c:true}, {t: "MD5", c:false}, {t: "SHA-256", c:false}] },
+                { q: "Сколько суперблоков?", a: [{t: "3 копии", c:true}, {t: "1 копия", c:false}, {t: "10 копий", c:false}] },
+                { q: "RAID1 самовосстановление?", a: [{t: "Да, из зеркала", c:true}, {t: "Нет, нужен ручной ремонт", c:false}, {t: "Только в платной версии", c:false}] },
+                { q: "Что делать первым?", a: [{t: "Снять образ / остановить запись", c:true}, {t: "Запустить repair", c:false}, {t: "Удалить файлы", c:false}] },
+                { q: "btrfs check --repair опасно?", a: [{t: "Да, может добить данные", c:true}, {t: "Нет, всегда помогает", c:false}, {t: "Безопасно, как chkdsk", c:false}] },
+                { q: "Язык скрипта спасения?", a: [{t: "Bash", c:true}, {t: "Python", c:false}, {t: "C++", c:false}] },
+                { q: "Почему read-only?", a: [{t: "Чтобы не повредить данные", c:true}, {t: "Диск сломан", c:false}, {t: "Быстрее", c:false}] },
+                { q: "Как найти свежий корень?", a: [{t: "Макс. Generation ID", c:true}, {t: "Мин. ID", c:false}, {t: "Тыком", c:false}] },
+                { q: "Если restore -D ошибки?", a: [{t: "Пробовать пред. поколение", c:true}, {t: "Формат", c:false}, {t: "Купить ПК", c:false}] },
+                { q: "Куда сохранять логи?", a: [{t: "На внешний носитель", c:true}, {t: "В /tmp", c:false}, {t: "Не сохранять", c:false}] },
+                { q: "Если диск щелкает?", a: [{t: "ddrescue / стоп", c:true}, {t: "Продолжать", c:false}, {t: "Постучать", c:false}] },
+                { q: "Нужен ли root?", a: [{t: "Да, для /dev/", c:true}, {t: "Нет", c:false}, {t: "Только write", c:false}] },
+                { q: "Можно ли прервать restore?", a: [{t: "Да, безопасно (чтение)", c:true}, {t: "Нет, диск сгорит", c:false}, {t: "Только через reboot", c:false}] },
+                { q: "Как проверить целостность копии?", a: [{t: "Сравнить хеши / открыть файлы", c:true}, {t: "По размеру папки", c:false}, {t: "На глаз", c:false}] },
+                { q: "Если btrfs-find-root ничего не нашел?", a: [{t: "Данные перезаписаны / криптография", c:true}, {t: "Попробовать еще раз", c:false}, {t: "Скрипт сломан", c:false}] },
+                { q: "Признак успеха в логе?", a: [{t: "Reading ... Done", c:true}, {t: "Core dump", c:false}, {t: "Segmentation fault", c:false}] },
+                { q: "Зачем нужен livecd?", a: [{t: "Исключить запись ОС на диск", c:true}, {t: "Там красивые обои", c:false}, {t: "Чтобы не грузить Windows", c:false}] },
+                { q: "Приоритет спасения?", a: [{t: "Уникальные документы/фото", c:true}, {t: "Системные файлы", c:false}, {t: "Кэш браузера", c:false}] },
+                { q: "Нужен ли интернет?", a: [{t: "Нет, утилиты локальны", c:true}, {t: "Да, для облака", c:false}, {t: "Да, для лицензии", c:false}] },
+                { q: "Если restore завис?", a: [{t: "Проверить dmesg на ошибки I/O", c:true}, {t: "Ждать вечно", c:false}, {t: "Выключить питание", c:false}] },
+                { q: "Btrfs Metadata Profile по умолчанию (один диск)?", a: [{t: "DUP (Дублирование)", c:true}, {t: "Single", c:false}, {t: "RAID0", c:false}] },
+                { q: "Можно ли восстановить удаленный subvolume?", a: [{t: "Да, если не перезаписан (find-root)", c:true}, {t: "Нет, никогда", c:false}, {t: "Через корзину", c:false}] },
+                { q: "Что такое Generation Rollback?", a: [{t: "Откат к старому дереву", c:true}, {t: "Переустановка драйвера", c:false}, {t: "Вращение диска", c:false}] },
+                { q: "Как монтировать degraded RAID?", a: [{t: "mount -o degraded", c:true}, {t: "mount -o force", c:false}, {t: "Нельзя", c:false}] },
+                { q: "Риск при 'btrfs check --init-extent-tree'?", a: [{t: "Потеря ссылок на данные", c:true}, {t: "Никакого", c:false}, {t: "Ускорение диска", c:false}] },
+                { q: "Главное правило Root Hunter?", a: [{t: "Не навреди (Read-Only)", c:true}, {t: "Скорость важнее всего", c:false}, {t: "Удали лишнее", c:false}] }
             ]
         };
 
@@ -381,74 +414,122 @@
             document.getElementById('langBtn').innerText = currentLang === 'ru' ? 'Language: RU' : 'Language: EN';
             updateUI(); restartQuiz();
         }
-        function updateUI() {
-            document.querySelectorAll('[data-i18n]').forEach(el => el.innerText = translations[currentLang][el.getAttribute('data-i18n')]);
-        }
 
-        function initDots() {
-            const container = document.getElementById('quiz-progress-dots'); container.innerHTML = '';
-            for (let i = 0; i < 30; i++) {
-                const dot = document.createElement('div');
-                dot.className = "w-3 h-3 rounded-full bg-white/5 transition-all duration-700 border border-white/5";
-                dot.id = `dot-${i}`; container.appendChild(dot);
-            }
-        }
-        function loadQuestion() {
-            const data = questionsList[currentLang][qIdx];
-            document.getElementById('q-current').innerText = qIdx + 1;
-            document.getElementById('quiz-question').innerText = data.q;
-            document.getElementById('score-live').innerText = `${Math.round((score / 30) * 100)}%`;
-            const oDiv = document.getElementById('quiz-options'); oDiv.innerHTML = '';
-            document.getElementById('quiz-next').classList.add('hidden');
-            data.a.forEach((opt, i) => {
-                const b = document.createElement('div');
-                b.className = 'quiz-option p-8 rounded-[1.8rem] bg-white/5 font-black flex items-center gap-6';
-                b.innerHTML = `<span class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xs opacity-30">${i+1}</span> ${opt.t}`;
-                b.onclick = () => selectOption(i);
-                oDiv.appendChild(b);
+        function updateUI() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) el.innerText = translations[currentLang][key];
             });
         }
-        function selectOption(i) {
-            const data = questionsList[currentLang][qIdx];
-            const opts = document.querySelectorAll('.quiz-option');
-            opts.forEach(o => o.onclick = null);
-            const dot = document.getElementById(`dot-${qIdx}`);
-            if (data.a[i].c) {
-                score++; xp += 100;
-                opts[i].classList.add('bg-emerald-500/20', 'border-emerald-500');
-                dot.classList.add('bg-emerald-500', 'shadow-[0_0_15px_#10b981]');
-            } else {
-                opts[i].classList.add('bg-red-500/10', 'border-red-500');
-                dot.classList.add('bg-red-500');
-                data.a.forEach((o, idx) => { if(o.c) opts[idx].classList.add('border-emerald-500/30'); });
-            }
-            document.getElementById('quiz-next').classList.remove('hidden');
-            updateRank();
-        }
-        function updateRank() {
-            const bar = document.getElementById('xp-bar'); const val = document.getElementById('xp-val'); const rank = document.getElementById('rank-name');
-            const percent = (xp / 3000) * 100;
-            bar.style.width = percent + '%'; val.innerText = xp;
-            if(xp > 1000) rank.innerText = "Specialist";
-            if(xp > 2500) rank.innerText = "Root Hunter";
-        }
-        document.getElementById('quiz-next').onclick = () => { qIdx++; if (qIdx < 30) loadQuestion(); else showResults(); };
-        function showResults() {
-            document.getElementById('quiz-content').classList.add('hidden');
-            document.getElementById('quiz-results').classList.remove('hidden');
-            const p = Math.round((score/30)*100);
-            document.getElementById('quiz-score-text').innerText = `${score}/30 Questions Solved (${p}%)`;
-            if(p >= 83) {
-                document.getElementById('result-icon').innerText = "🏆";
-                document.getElementById('result-title').innerText = "ACCESS GRANTED";
-                document.getElementById('result-title').classList.add('text-emerald-400');
-                document.getElementById('login-reveal').classList.remove('hidden');
-                document.getElementById('badge-status').innerText = "Verified";
-                document.getElementById('badge-status').classList.replace('text-red-500', 'text-emerald-400');
-            }
-        }
-        function restartQuiz() { score = 0; qIdx = 0; xp = 0; document.getElementById('quiz-content').classList.remove('hidden'); document.getElementById('quiz-results').classList.add('hidden'); document.getElementById('login-reveal').classList.add('hidden'); initDots(); loadQuestion(); updateRank(); }
 
+        function startModule(mod) {
+            activeModule = mod; currentQ = 0; currentScore = 0;
+            document.getElementById('exam-menu').classList.add('hidden');
+            document.getElementById('active-quiz').classList.remove('hidden');
+            document.getElementById('quiz-content').classList.remove('hidden');
+            document.getElementById('quiz-result-screen').classList.add('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = modules[activeModule][currentQ];
+            document.getElementById('quiz-question').innerText = q.q;
+            const div = document.getElementById('quiz-options'); div.innerHTML = '';
+            
+            // Перемешивание ответов
+            let opts = [...q.a].sort(() => Math.random() - 0.5);
+
+            opts.forEach((opt) => {
+                const b = document.createElement('div');
+                b.className = 'quiz-option p-6 rounded-2xl font-bold bg-white/5';
+                b.innerText = opt.t;
+                b.onclick = () => {
+                    if(opt.c) currentScore++;
+                    currentQ++;
+                    if(currentQ < 30) renderQuestion(); else finishModule();
+                };
+                div.appendChild(b);
+            });
+        }
+
+        function finishModule() {
+            document.getElementById('quiz-content').classList.add('hidden');
+            document.getElementById('quiz-result-screen').classList.remove('hidden');
+            // 25 из 30 = 83.33%
+            const passed = currentScore >= 25;
+            const title = document.getElementById('result-title');
+            const msg = document.getElementById('result-msg');
+            const box = document.getElementById('reward-box');
+
+            title.innerText = passed ? "MODULE PASSED" : "FAILED";
+            title.className = passed ? "text-5xl font-black text-emerald-500 mb-4" : "text-5xl font-black text-red-500 mb-4";
+            msg.innerText = `Score: ${currentScore}/30`;
+            
+            box.classList.add('hidden');
+            if(passed) {
+                box.classList.remove('hidden');
+                if(activeModule === 'A') {
+                    unlocks.theory = true;
+                    box.innerHTML = `<p class="text-emerald-400 font-bold">ACCESS GRANTED: GRAPH ANALYSIS</p>`;
+                    document.getElementById('chart-lock').classList.add('hidden');
+                }
+                if(activeModule === 'B') {
+                    unlocks.terminal = true;
+                    box.innerHTML = `<p class="text-emerald-400 font-bold mb-2">TERMINAL CREDENTIALS:</p><p class="font-mono bg-black p-2 rounded">USER: admin | PASS: btrfs_root_2026</p>`;
+                }
+                if(activeModule === 'C') {
+                    unlocks.hunter = true;
+                    document.getElementById('rank-name').innerText = "Root Hunter";
+                    box.innerHTML = `<p class="text-emerald-400 font-bold">CERTIFIED ROOT HUNTER</p>`;
+                }
+            }
+        }
+
+        function closeQuiz() {
+            document.getElementById('active-quiz').classList.add('hidden');
+            document.getElementById('exam-menu').classList.remove('hidden');
+        }
+
+        function saveApiKey() {
+            const k = document.getElementById('gemini-key').value;
+            if(k) { localStorage.setItem('gemini_key', k); geminiKey = k; document.getElementById('apikey-overlay').classList.add('hidden'); }
+        }
+
+        async function sendToGemini() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+            
+            addMsg(text, 'user');
+            input.value = '';
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiKey}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text }] }],
+                        systemInstruction: { parts: [{ text: "You are the Cyber Mentor of Btrfs Root Hunter Academy. Expert in Linux data recovery. Style: cyberpunk, strict but helpful. Short answers." }] }
+                    })
+                });
+                const data = await response.json();
+                const aiText = data.candidates[0].content.parts[0].text;
+                addMsg(marked.parse(aiText), 'ai');
+            } catch(e) {
+                addMsg("CONNECTION ERROR: Uplink failed.", 'ai');
+            }
+        }
+
+        function addMsg(html, type) {
+            const div = document.createElement('div');
+            div.className = `chat-bubble ${type === 'user' ? 'user-msg' : 'ai-msg'}`;
+            div.innerHTML = html;
+            const h = document.getElementById('chat-history');
+            h.appendChild(div);
+            h.scrollTop = h.scrollHeight;
+        }
+
+        // --- TERMINAL ---
         function tryLogin() {
             const u = document.getElementById('l-user').value.toLowerCase();
             const p = document.getElementById('l-pass').value;
@@ -457,68 +538,50 @@
                 document.getElementById('active-line').classList.remove('hidden'); focusTerminal();
             } else { document.getElementById('login-err').classList.remove('hidden'); }
         }
+        
+        function focusTerminal() { document.getElementById('terminal-input').focus(); }
+        
         const tInput = document.getElementById('terminal-input');
-        const tDisplay = document.getElementById('terminal-display-text');
         const tHistory = document.getElementById('terminal-history');
-        const tBody = document.getElementById('terminal-body');
-        const commands = {
-            'help': () => translations[currentLang].termHelp,
-            'ls': () => 'LICENSE  README.md  btrfs_magic.sh  roots.txt  dump.log',
-            'pwd': () => '/home/mint/Documents/Btrfs',
-            'btrfs check': () => 'Critical Error: chunk tree invalid.\nCannot open file system.',
-            'btrfs-find-root': () => 'Scanning for trees...\n[OK] Node 492801234 (Gen 5003)',
-            'sudo ./btrfs_magic.sh': () => '>>> Initiating Root Hunter Protocol...\n>>> Analyzing offset 492801234... SUCCESS!\n>>> Starting data evacuation...'
+        const termCmds = {
+            'help': "Available: help, ls, pwd, btrfs check, mount, dmesg, cat btrfs_magic.sh, top, clear",
+            'mount /dev/sda2 /mnt': "mount: bad superblock on /dev/sda2. missing codepage or helper program.",
+            'dmesg': "[ 12.4] BTRFS error (device sda2): chunk tree logical 492801234 not found",
+            'btrfs check': "Critical Error: chunk tree invalid. Tree root is unreachable.",
+            'cat btrfs_magic.sh': "#!/bin/bash\n# Root Hunter Script\nbtrfs-find-root /dev/sda2 | grep 'Well block' > roots.txt",
+            'top': "PID USER  PR  NI  VIRT  RES  SHR S  %CPU %MEM    TIME+ COMMAND\n 1  root  20   0  100m  10m   5m S   0.0  0.1   0:01.23 init",
+            'clear': "CLEAR",
+            'ls': "LICENSE  README.md  btrfs_magic.sh  roots.txt",
+            'pwd': "/home/hunter/recovery"
         };
-        function focusTerminal() { tInput.focus(); }
-        tInput.oninput = () => tDisplay.innerText = tInput.value;
+
+        tInput.oninput = () => document.getElementById('terminal-display-text').innerText = tInput.value;
         tInput.onkeydown = (e) => {
             if (e.key === 'Enter') {
-                const raw = tInput.value.trim(); const cmd = raw.toLowerCase();
-                if(raw) cmdHistory.push(raw); historyIdx = cmdHistory.length;
-                if (cmd === 'clear') { tHistory.innerHTML = ''; }
-                else if (cmd) {
-                    const output = commands[cmd] ? commands[cmd]() : `bash: ${cmd}: ${translations[currentLang].termNotFound}`;
-                    const entry = document.createElement('div');
-                    entry.innerHTML = `<div class="mt-6 flex gap-4"><span class="text-sky-400 font-bold underline italic">operator@hunter</span><span class="text-white font-bold">${raw}</span></div><div class="opacity-50 whitespace-pre-wrap mt-2">${output}</div>`;
-                    tHistory.appendChild(entry);
-                }
-                tInput.value = ''; tDisplay.innerText = ''; tBody.scrollTop = tBody.scrollHeight;
-            } else if(e.key === 'ArrowUp') {
-                if(historyIdx > 0) { historyIdx--; tInput.value = cmdHistory[historyIdx]; tDisplay.innerText = tInput.value; }
-            } else if(e.key === 'ArrowDown') {
-                if(historyIdx < cmdHistory.length - 1) { historyIdx++; tInput.value = cmdHistory[historyIdx]; }
-                else { tInput.value = ''; }
-                tDisplay.innerText = tInput.value;
+                const raw = tInput.value.trim();
+                const output = termCmds[raw] || termCmds[raw.split(' ')[0]] || "command not found";
+                if (output === "CLEAR") tHistory.innerHTML = '';
+                else tHistory.innerHTML += `<div class="mt-2"><span class="text-sky-400">root@hunter</span>: <span class="text-white">${raw}</span></div><div class="opacity-60 whitespace-pre-wrap">${output}</div>`;
+                tInput.value = ''; document.getElementById('terminal-display-text').innerText = '';
+                document.getElementById('terminal-body').scrollTop = document.getElementById('terminal-body').scrollHeight;
             }
         };
 
         function initChart() {
-            const ctx = document.getElementById('btrfsChart').getContext('2d');
-            chartObj = new Chart(ctx, {
+            chartObj = new Chart(document.getElementById('btrfsChart').getContext('2d'), {
                 type: 'scatter',
-                data: {
-                    datasets: [{
-                        data: [{x:5005,y:5,s:'bad'},{x:5004,y:10,s:'bad'},{x:5003,y:90,s:'ok'},{x:5002,y:85,s:'ok'}],
-                        backgroundColor: (c) => c.raw?.s === 'ok' ? '#10b981' : '#ef4444',
-                        pointRadius: 12, pointHoverRadius: 20
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { title: { display: true, text: 'Transaction Gen ID', color: '#64748b' } }, y: { display: false, min: 0, max: 100 } },
-                    onClick: (e, el) => {
-                        if(el.length > 0) {
-                            const p = el[0].element.$context.raw;
-                            document.getElementById('root-details').innerHTML = p.s === 'ok' ? `<span class="text-emerald-400 font-black tracking-widest uppercase">Generation ${p.x}: Healthy Root Found. Recoverable.</span>` : `<span class="text-red-500 font-black tracking-widest uppercase">Generation ${p.x}: Checksum Mismatch. Data Corrupted.</span>`;
-                            document.getElementById('root-details').style.opacity = '1';
-                        }
-                    }
-                }
+                data: { datasets: [{ data: [{x:5005,y:5,s:'bad'},{x:5003,y:90,s:'ok'}], backgroundColor: c=>c.raw.s==='ok'?'#10b981':'#ef4444', pointRadius:12 }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { display: false } } }
             });
         }
+        
+        function restartQuiz() {
+            if(activeModule) {
+                startModule(activeModule);
+            }
+        }
 
-        window.onload = () => { updateUI(); initDots(); loadQuestion(); switchTab('dashboard'); };
+        window.onload = () => { updateUI(); switchTab('dashboard'); };
     </script>
 </body>
 </html>
