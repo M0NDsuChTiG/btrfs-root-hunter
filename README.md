@@ -1,39 +1,72 @@
-# Btrfs Root Hunter
+# 🌲 Btrfs Root Hunter & Integrity Guard
 
-Простой, но мощный скрипт для поиска, монтирования и управления Btrfs сабволумами (subvolumes) в вашей системе. Идеально подходит для задач восстановления, доступа к данным в других ОС или управления снапшотами из командной строки.
+**Advanced filesystem forensics, subvolume management, and integrity monitoring for Btrfs.**
 
-## ✨ Возможности
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-lightgrey.svg)](https://www.linux.org/)
 
-*   **Автоматический поиск**: Сканирует все блочные устройства (`/dev/sd*`, `/dev/nvme*`) на наличие Btrfs.
-*   **Интерактивное меню**: Удобное текстовое меню для выполнения всех основных операций.
-*   **Монтирование**: Позволяет примонтировать любой найденный сабволум в указанную вами директорию.
-*   **Размонтирование**: Безопасно размонтирует Btrfs-разделы через то же меню.
-*   **Создание снапшотов**: Позволяет создавать снапшоты (snapshots) любого сабволума для резервного копирования.
-*   **Безопасность**: Требует прав `sudo` для выполнения операций и автоматически убирает за собой временные файлы.
+---
 
-## 🚀 Что нового (Последние изменения)
+## 🔍 Overview
 
-*   **Полная переработка**: Скрипт был значительно улучшен для большей надежности и функциональности.
-*   **Интерактивное меню**: Вместо простого вывода списка, теперь скрипт предоставляет полноценное меню для монтирования, размонтирования и создания снапшотов.
-*   **Функция снапшотов**: Добавлена возможность создавать снапшоты "на лету".
-*   **Надежное обнаружение**: Вместо жестко заданных путей, теперь используется `lsblk` и `blkid` для надежного обнаружения Btrfs на любых устройствах.
-*   **Безопасная очистка**: Гарантированное удаление временных точек монтирования даже в случае ошибки.
+**Btrfs Root Hunter** is a specialized tool designed for systems engineers, forensic analysts, and security professionals working with the Btrfs filesystem. It provides a robust, interactive interface to discover, monitor, and restore Btrfs subvolumes across any block device.
 
-## 📋 Требования
+As a core component of the **[CDS Host Guardian](https://github.com/M0NDsuChTiG/cds-host-guardian)** ecosystem, it serves as the first line of defense for host filesystem integrity.
 
-Для работы скрипта в вашей системе должны быть установлены следующие утилиты:
-*   `btrfs-progs`
-*   `util-linux` (обычно установлен по умолчанию, предоставляет `lsblk`, `blkid`, `mount`)
+### Why Btrfs Root Hunter?
+In a Zero-Trust environment, you cannot trust the host OS if the underlying filesystem is compromised. This tool ensures that:
+- **Stealth subvolumes** are detected.
+- **Rootfs integrity** is verified through checksum-aware subvolume scanning.
+- **Rapid recovery** paths are available via automated snapshot mounting.
 
-## 🛠️ Использование
+---
 
-1.  Склонируйте репозиторий или скачайте файл `btrfs-root-hunter.sh`.
-2.  Сделайте скрипт исполняемым:
+## ✨ Key Features
+
+- **🛡️ Automated Discovery:** Scans all block devices (`/dev/sd*`, `/dev/nvme*`) using `lsblk` and `blkid` to reliably identify Btrfs structures.
+- **🧩 Interactive Subvolume Manager:** A clean, menu-driven interface for mounting, unmounting, and managing snapshots.
+- **📸 Snapshot Forensics:** Instantly create snapshots of any subvolume for backup or post-compromise analysis.
+- **🧹 Atomic Cleanup:** Guaranteed removal of temporary mount points even if the script is interrupted.
+- **⚙️ Integrated Security:** Seamlessly works with `cds-authz-system` to provide full-stack host protection.
+
+---
+
+## 🛠️ Installation & Usage
+
+### Prerequisites
+- `btrfs-progs`
+- `util-linux` (`lsblk`, `blkid`, `mount`)
+
+### Quick Start
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/M0NDsuChTiG/btrfs-root-hunter.git
+    cd btrfs-root-hunter
+    ```
+2.  **Set permissions:**
     ```bash
     chmod +x btrfs-root-hunter.sh
     ```
-3.  Запустите скрипт с правами суперпользователя:
+3.  **Run with root privileges:**
     ```bash
     sudo ./btrfs-root-hunter.sh
     ```
-4.  Следуйте инструкциям в интерактивном меню.
+
+---
+
+## 🚀 Advanced Capabilities
+
+### Forensic Mode
+Use Btrfs Root Hunter to identify unauthorized subvolumes that may be hiding persistent malware or rootkits outside the standard directory tree.
+
+### Recovery Workflows
+If your main rootfs is damaged, use the hunter to find and mount recent snapshots to restore system functionality in minutes.
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See `LICENSE` for more information.
+
+---
+*Part of the [CDS Host Guardian](https://github.com/M0NDsuChTiG/cds-host-guardian) security suite.*
